@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="fragments/meta :: head(title=${book.getFullTitle()})"></th:block>
+</head>
+<body class="container">
+<header th:replace="fragments/header :: header ('catalog')"></header>
+<div class="row">
+    <h1 th:text="${book.getTitle()}"></h1>
+    <h2 th:if="${book.getTitleCmpl() != null}" th:text="${book.getTitleCmpl()}"></h2>
+</div>
+<div class="row">
+    <div class="col-auto"></div>
+    <div class="col">
+        <p th:if="${book.inSerie()}" th:text="${book.getSerie()} + ' - Tome ' + ${book.getTome()}"></p>
+        <p th:text="${book.getDescription()}"></p>
+        <a th:href="@{/author/{authorID}(authorID=${book.getAuthor().getAuthorId()})}" th:text="${book.getAuthor().getFirstName()} + ' ' + ${book.getAuthor().getLastName()}"></a>
+        <p th:text="'ISBN : ' + ${book.getIsbn()}"></p>
+    </div>
+</div>
+</body>
+</html>

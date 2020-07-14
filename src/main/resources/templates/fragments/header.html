@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../../static/css/bootstrap.css">
+    <script src="../../static/js/jquery-3.5.1.js"></script>
+    <script src="../../static/js/bootstrap.bundle.js"></script>
+</head>
+<body>
+<header th:fragment="header (activeMenu)">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" th:href="@{/catalog/}">WHL</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Catalogue <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Auteurs</a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="ISBN" aria-label="ISBN">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Préter</button>
+            </form>
+        </div>
+    </nav>
+    <div class="d-flex flex-row justify-content-center">
+        <div id="msg-wrapper" class="flex-column">
+            <div class="alert alert-dismissible fade show" th:classappend="${'alert-' + message.getLevel()}"
+                 role="alert" th:each="message : ${@messageBagService.emptyMessagBag()}">
+                <span th:text="${message.getMessage()}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+</body>
+</html>

@@ -6,6 +6,9 @@ import org.marc4j.MarcXmlReader;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -15,7 +18,9 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
+import space.basty.webhomelibrary.model.Author;
 import space.basty.webhomelibrary.model.Book;
+import space.basty.webhomelibrary.repository.AuthorRepository;
 import space.basty.webhomelibrary.util.ParameterStringBuilder;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -24,15 +29,19 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Year;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 
 @Service
 public class BnfSruService {
     private URL url;
+    private final Logger logger = LoggerFactory.getLogger(BnfSruService.class);
+    private final AuthorRepository authorRepository;
 
-    public BnfSruService() {
+    @Autowired
+    public BnfSruService(AuthorRepository authorRepository) {
+        this.authorRepository = authorRepository;
         try {
             url = new URL("http://catalogue.bnf.fr/api/SRU");
         } catch (MalformedURLException e) {
@@ -41,7 +50,7 @@ public class BnfSruService {
     }
 
     @SneakyThrows
-    private String executeQuery(String query){
+    private List<Book> executeQuery(String query){
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -83,31 +92,33 @@ public class BnfSruService {
         doc.getDocumentElement().normalize();
 
         NodeList bookList = doc.getElementsByTagName("srw:record");
-        StringBuilder result = new StringBuilder();
+        List<Book> results = new ArrayList<>();
         for (int i = 0; i < bookList.getLength(); i++) {
             Element nBook = (Element) bookList.item(i);
             Node nBookData = nBook.getElementsByTagName("mxc:record").item(0);
 
             MarcReader reader = new MarcXmlReader(new InputSource(new StringReader(ser.writeToString(nBookData))));
             Record record = reader.next();
-            result.append(record2Book(record).toString()).append("\n");
+            results.add(record2Book(record));
         }
-        return result.toString();
+        return results;
     }
 
     @SneakyThrows
-    public String getBookByISBN(String isbn) throws IOException {
+    public List<Book> getBookByISBN(String isbn) throws IOException {
         return executeQuery("bib.isbn adj \"" + isbn + "\"");
     }
 
     @SneakyThrows
-    public String getBookByAuthor(String authorId) {
+    public List<Book> getBookByAuthor(String authorId) {
         return executeQuery("author2bib any \"" + authorId + "\"");
     }
 
-    static private Book record2Book(Record record){
+    private Book record2Book(Record record){
         Book book = new Book();
+        Author author = new Author();
 
+        book.setAuthorityRawValue(record.toString());
         book.setRecordId(record.getControlNumber());
         for (DataField field :
                 record.getDataFields()) {
@@ -122,6 +133,33 @@ public class BnfSruService {
                     }
                     break;
 
+                case "100":
+                    for(Subfield sfield : field.getSubfields()) {
+                        switch (sfield.getCode()) {
+                            case 'a':
+                                author.setLastName(sfield.getData());
+                                break;
+                            case 'm':
+                                author.setFirstName(sfield.getData());
+                                break;
+                            case '1':
+                                author.setIdNotice(sfield.getData());
+                                break;
+                            case 'd':
+                                String[] birthDeath = sfield.getData().split("-");
+                                author.setBirth(Year.parse(birthDeath[0]));
+                                try {
+                                    author.setDeath(Year.parse(birthDeath[1]));
+                                }
+                                catch (DateTimeParseException ex){
+                                    logger.debug("No death birth for the author");
+                                    author.setDeath(null);
+                                }
+                                break;
+                        }
+                    }
+                    break;
+
                 case "245":
                     for(Subfield sfield : field.getSubfields()) {
                         switch (sfield.getCode()) {
@@ -129,7 +167,30 @@ public class BnfSruService {
                                 book.setTitle(sfield.getData());
                                 break;
                             case 'e':
-                                book.setTomeIndication(sfield.getData());
+                                book.setTitleCmpl(sfield.getData());
+                                break;
+                        }
+                    }
+                    break;
+
+                case "460":
+                    for(Subfield sfield : field.getSubfields()) {
+                        switch (sfield.getCode()) {
+                            case 't':
+                                book.setSerie(sfield.getData());
+                                break;
+                            case 'v':
+                                book.setTome(sfield.getData());
+                                break;
+                        }
+                    }
+                    break;
+
+                case "830":
+                    for(Subfield sfield : field.getSubfields()) {
+                        switch (sfield.getCode()) {
+                            case 'a':
+                                book.setDescription(sfield.getData());
                                 break;
                         }
                     }
@@ -137,6 +198,14 @@ public class BnfSruService {
             }
         }
 
+        Optional<Author> optionalAuthorInDb = authorRepository.findOneByIdNotice(author.getIdNotice());
+        if(optionalAuthorInDb.isPresent()){
+            optionalAuthorInDb.get().updateWith(author);
+            book.setAuthor(optionalAuthorInDb.get());
+        }
+        else {
+            book.setAuthor(author);
+        }
         return book;
     }
 }

@@ -1,6 +1,7 @@
 package space.basty.webhomelibrary.model;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.Year;
@@ -23,6 +24,34 @@ public class Author {
 
     Year death;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "author")
-    List<Book> livres;
+    List<Book> books;
+
+    public void updateWith(Author newValue){
+
+        if(newValue.getIdNotice() != null){
+            this.setIdNotice(newValue.getIdNotice());
+        }
+
+        if(newValue.getFirstName() != null){
+            this.setFirstName(newValue.getFirstName());
+        }
+
+        if(newValue.getLastName() != null){
+            this.setLastName(newValue.getLastName());
+        }
+
+        if(newValue.getBirth() != null){
+            this.setBirth(newValue.getBirth());
+        }
+
+        if(newValue.getDeath() != null){
+            this.setDeath(newValue.getDeath());
+        }
+    }
+
+    public String getFullName(){
+        return firstName + " " + lastName;
+    }
 }

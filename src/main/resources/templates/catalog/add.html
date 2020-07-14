@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="fragments/meta :: head(title='Add Book')"></th:block>
+</head>
+<body>
+<header th:replace="fragments/header :: header ('addBook')"></header>
+<form th:action="@{/catalog/add}" method="post">
+    <label for="isbn">ISBN</label>
+    <input id="isbn" type="text" name="isbn" autofocus/>
+    <input th:type="submit" value="Search by ISBN">
+    <label for="multiple">Multiple</label>
+    <input id="multiple" type="checkbox" name="multiple" th:checked="${multiple}"/>
+</form>
+<form th:action="@{/catalog/add}" method="post">
+    <label for="bookId">Book ID</label>
+    <input id="bookId" type="text" name="bookId"/>
+    <input th:type="submit" value="Search by Book ID">
+</form>
+
+<a th:href="@{/catalog/}">Retour</a>
+</body>
+</html>
