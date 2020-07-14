@@ -14,8 +14,22 @@
     <div class="col">
         <p th:if="${book.inSerie()}" th:text="${book.getSerie()} + ' - Tome ' + ${book.getTome()}"></p>
         <p th:text="${book.getDescription()}"></p>
-        <a th:href="@{/author/{authorID}(authorID=${book.getAuthor().getAuthorId()})}" th:text="${book.getAuthor().getFirstName()} + ' ' + ${book.getAuthor().getLastName()}"></a>
+        <a th:href="@{/author/{authorID}(authorID=${book.getAuthor().getAuthorId()})}"
+           th:text="${book.getAuthor().getFirstName()} + ' ' + ${book.getAuthor().getLastName()}"></a>
         <p th:text="'ISBN : ' + ${book.getIsbn()}"></p>
+        <form th:if="${!book.isLent()}" th:action="@{/book/{bookId}/lendTo(bookId=${book.getBookId()})}"
+              class="form-inline" th:method="post">
+            <label for="lentTo">Préter à </label>
+            <input name="lentTo" type="text" class="form-control" id="lentTo" placeholder="John Doe">
+            <input type="submit" class="btn btn-primary" value="Préter"/>
+        </form>
+        <div th:if="${book.isLent()}">
+            <p class="rounded-lg bg-info text-white font-weight-bold w-25 p-2 text-center"
+               th:text="'Prété à ' + ${book.getLentTo()}"></p>
+            <a th:href="@{/book/{bookId}/lendBack (bookId=${book.getBookId()})}" class="btn btn-outline-success">
+                Rendu
+            </a>
+        </div>
     </div>
 </div>
 </body>

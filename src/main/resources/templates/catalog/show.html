@@ -6,33 +6,6 @@
 <body>
 <header th:replace="fragments/header :: header ('catalog')"></header>
 <a class="btn btn-primary" th:href="@{/catalog/add}"><i class="fa fa-plus"></i> Add</a>
-<table class="table">
-    <thead>
-    <tr>
-        <th>#</th>
-        <th>Record</th>
-        <th>ISBN</th>
-        <th>Serie</th>
-        <th>Tome</th>
-        <th>Title</th>
-        <th>Action</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="book : ${bookList}">
-        <td th:text="${book.getBookId()}"></td>
-        <td th:text="${book.getRecordId()}"></td>
-        <td th:text="${book.getIsbn()}"></td>
-        <td th:text="${book.getSerie()}"></td>
-        <td th:text="${book.getTome()}"></td>
-        <td th:text="${book.getFullTitle()}"></td>
-        <td>
-            <a th:href="@{/book/{bookId}(bookId=${book.getBookId()})}" class="btn btn-primary">
-                <i class="fa fa-eye"></i>
-            </a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<table class="table" th:replace="fragments/books :: bookTable(${bookList})"></table>
 </body>
 </html>

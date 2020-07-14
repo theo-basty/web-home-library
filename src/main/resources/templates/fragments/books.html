@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Fragments</title>
+</head>
+<body>
+<!--@thymesVar id="bookList" type="java.util.List<space.basty.webhomelibrary.model.Book>"-->
+<div th:fragment="bookTable (bookList)">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Record</th>
+            <th>ISBN</th>
+            <th>Serie</th>
+            <th>Tome</th>
+            <th>Title</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="book : ${bookList}" th:class="${book.isLent() ? 'table-info' : ''}">
+            <td th:text="${book.getBookId()}"></td>
+            <td th:text="${book.getRecordId()}"></td>
+            <td th:text="${book.getIsbn()}"></td>
+            <td th:text="${book.getSerie()}"></td>
+            <td th:text="${book.getTome()}"></td>
+            <td th:text="${book.getFullTitle()}"></td>
+            <td>
+                <a th:href="@{/book/{bookId}(bookId=${book.getBookId()})}" class="btn btn-outline-primary">
+                    <i class="fa fa-eye"></i>
+                </a>
+                <button th:if="${!book.isLent()}" type="button" class="btn btn-outline-warning" data-toggle="modal" th:data-target="'#lendBook' + ${book.getBookId()} + 'Modal'">
+                    <i class="fas fa-hand-holding"></i>
+                </button>
+                <a th:href="@{/book/{bookId}/lendBack (bookId=${book.getBookId()})}" th:if="${book.isLent()}" class="btn btn-outline-success">
+                    <i class="fas fa-hand-holding fa-rotate-180"></i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div id="modal" th:each="book : ${bookList}" th:if="${!book.isLent()}">
+        <div class="modal fade" th:id="'lendBook' + ${book.getBookId()} + 'Modal'" tabindex="-1" role="dialog"
+             aria-labelledby="'lendBook' + ${book.getBookId()} + 'ModalLabel'"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" th:id="'lendBook' + ${book.getBookId()} + 'ModalLabel'"
+                            th:text="${book.getFullTitle()}"></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form th:action="@{/book/{bookId}/lendTo(bookId=${book.getBookId()})}" th:method="post">
+                        <div class="modal-body container">
+                            <div class="form-group row">
+                                <label for="lentTo" class="col-sm-2 col-form-label">Préter à</label>
+                                <div class="col-sm-10">
+                                    <input name="lentTo" type="text" class="form-control" id="lentTo" placeholder="John Doe">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <input type="submit" class="btn btn-primary" value="Préter"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

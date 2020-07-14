@@ -1,10 +1,8 @@
 package space.basty.webhomelibrary.model;
 
 import lombok.Data;
-import org.springframework.context.annotation.Primary;
 
 import javax.persistence.*;
-import java.sql.Date;
 
 @Entity
 @Data
@@ -26,6 +24,8 @@ public class Book {
 
     String tome;
 
+    String lentTo;
+
     @Lob
     String description;
 
@@ -38,8 +38,12 @@ public class Book {
     @Transient
     String authorityRawValue;
 
+    public Boolean isLent() {
+        return lentTo != null;
+    }
+
     public String getFullTitle(){
-        String fullTitle = "";
+        String fullTitle;
         if(titleCmpl == null){
             fullTitle =  title;
         }
